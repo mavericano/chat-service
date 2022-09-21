@@ -43,7 +43,8 @@ public class RestChatController {
     public ChatDto createChat(@RequestBody HashMap<String, Object> params) {
         final var participants = (List<String>) params.get("participants");
         final var chatId = (String)params.get("chatId");
-        return chatService.createChat(participants, chatId);
+        final var chatName = (String)params.get("chatName");
+        return chatService.createChat(participants, chatId, chatName);
     }
 
     @PutMapping("/{id}")

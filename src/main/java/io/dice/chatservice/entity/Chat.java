@@ -5,7 +5,6 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,6 +23,9 @@ public class Chat {
     @Column
     @Type(type = "uuid-char")
     private UUID chatId;
+
+    @Column
+    private String chatName;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "chat", cascade = {CascadeType.MERGE})
     private Set<UserChatCounter> participants;

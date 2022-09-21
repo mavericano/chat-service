@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface ChatService {
     List<ChatDto> getAllChatsPaginatedForUser(UUID uuid, int page, int size);
 
-    ChatDto createChat(List<String> participants, String chatId);
+    ChatDto createChat(List<String> participants, String chatId, String chatName);
 
     ChatDto modifyChat(List<String> participants, UUID chatId);
 

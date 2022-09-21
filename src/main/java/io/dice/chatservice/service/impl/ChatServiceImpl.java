@@ -51,11 +51,12 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public ChatDto createChat(List<String> participants, String chatId) {
+    public ChatDto createChat(List<String> participants, String chatId, String chatName) {
         final var chat = Chat.builder()
                 .chatId(UUID.fromString(chatId))
                 .messages(Set.of())
                 .participants(null)
+                .chatName(chatName)
                 .build();
         final var users = participants.stream()
                 .map(UUID::fromString)

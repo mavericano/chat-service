@@ -14,6 +14,7 @@ public class ChatMapper {
                 .uuid(chat.getChatId())
                 .lastMessage(messageDto)
                 .unreadMessages(unreadMessages)
+                .chatName(chat.getChatName())
                 .build();
     }
 }

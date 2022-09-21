@@ -11,4 +11,5 @@ public class ChatDto {
     private UUID uuid;
     private MessageDto lastMessage;
     private long unreadMessages;
+    private String chatName;
 }
