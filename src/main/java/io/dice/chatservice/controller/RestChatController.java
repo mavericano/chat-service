@@ -1,6 +1,7 @@
 package io.dice.chatservice.controller;
 
 import io.dice.chatservice.dto.ChatDto;
+import io.dice.chatservice.dto.UserDto;
 import io.dice.chatservice.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +20,11 @@ import java.util.UUID;
 public class RestChatController {
 
     private final ChatService chatService;
+
+    @GetMapping(path = "/{chatId}/members")
+    public List<UserDto> getMembersForChat(@PathVariable UUID chatId) {
+        return chatService.getMembersForChat(chatId);
+    }
 
     @GetMapping(path = "/sender/{uuid}", params = {"page", "size"})
     public ResponseEntity<List<ChatDto>> getAllChatsPaginatedForUser(@PathVariable UUID uuid,

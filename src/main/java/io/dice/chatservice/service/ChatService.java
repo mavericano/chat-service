@@ -1,6 +1,7 @@
 package io.dice.chatservice.service;
 
 import io.dice.chatservice.dto.ChatDto;
+import io.dice.chatservice.dto.UserDto;
 import io.dice.chatservice.entity.Chat;
 import lombok.SneakyThrows;
 import org.springframework.web.socket.WebSocketSession;
@@ -16,6 +17,8 @@ public interface ChatService {
     ChatDto modifyChat(List<String> participants, UUID chatId);
 
     Chat getChatEntityById(UUID chatId);
+
+    List<UserDto> getMembersForChat(UUID chatId);
 
     long countAllByUser(UUID userId);
 

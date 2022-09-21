@@ -2,6 +2,7 @@ package io.dice.chatservice.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dice.chatservice.dto.ChatDto;
+import io.dice.chatservice.dto.UserDto;
 import io.dice.chatservice.entity.Chat;
 import io.dice.chatservice.entity.Session;
 import io.dice.chatservice.entity.UserChatCounter;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.*;
@@ -37,6 +39,7 @@ public class ChatServiceImpl implements ChatService {
     private final UserChatCounterRepository userChatCounterRepository;
     private final UserMapper userMapper;
     private final MessageService messageService;
+    private final EntityManager entityManager;
     private List<Session> sessions = new ArrayList<>();
 
     @Override
@@ -109,6 +112,14 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    public List<UserDto> getMembersForChat(UUID chatId) {
+        return chatRepository.findById(chatId).orElseThrow().getParticipants().stream()
+                .map(UserChatCounter::getUser)
+                .map(userMapper::userToUserDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public long countAllByUser(UUID userId) {
         return chatRepository.countAllByUser(userId.toString());
     }
@@ -126,12 +137,7 @@ public class ChatServiceImpl implements ChatService {
             sessions.add(Session.builder().session(session).chatId(chatId).senderId(senderId).build());
             userChatCounterRepository.findAllByChatChatId(chatId).stream()
                     .filter(item -> item.getUser().getUuid().equals(senderId))
-                    .forEach(item -> {
-                        System.out.println(item.getUser().getUuid());
-                        System.out.println(item.getChat().getChatId());
-                        System.out.println(item.getCounter());
-                        item.setCounter(0);
-                    });
+                    .forEach(item -> item.setCounter(0));
             log.info("Registered session " + session + " for chat " + chatId + " and sender " + senderId);
         } else {
             final var msg = messageService.saveMessage(root.get("body").textValue(), chatId, senderId);
