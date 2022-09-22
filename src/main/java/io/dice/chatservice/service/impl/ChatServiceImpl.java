@@ -40,7 +40,8 @@ public class ChatServiceImpl implements ChatService {
     private final UserMapper userMapper;
     private final MessageService messageService;
     private final EntityManager entityManager;
-    private List<Session> sessions = new ArrayList<>();
+    private List<Session> chatSessions = new ArrayList<>();
+    private List<Session> chatListSessions = new ArrayList<>();
 
     @Override
     public List<ChatDto> getAllChatsPaginatedForUser(UUID uuid, int page, int size) {
@@ -93,7 +94,6 @@ public class ChatServiceImpl implements ChatService {
                         .counter(0)
                         .build()))
                 .collect(Collectors.toList());
-        System.out.println(users);
 //                .map(user -> UserChatCounter.builder()
 //                        .uuid(UUID.randomUUID())
 //                        .user(user)
@@ -132,10 +132,11 @@ public class ChatServiceImpl implements ChatService {
         final var root = mapper.readTree(message);
         final var chatId = UUID.fromString(root.get("chatId").textValue());
         final var senderId = UUID.fromString(root.get("senderId").textValue());
-        final var linkedSessions = sessions.stream().filter(item -> item.getChatId().equals(chatId)).collect(Collectors.toList());
+        final var linkedSessions = chatSessions.stream().filter(item -> item.getChatId().equals(chatId)).collect(Collectors.toList());
+//        final var linkedChatListSessions = chatListSessions.stream().filter(null).collect(Collectors.toList());
 
         if (root.get("isInit") != null) {
-            sessions.add(Session.builder().session(session).chatId(chatId).senderId(senderId).build());
+            chatSessions.add(Session.builder().session(session).chatId(chatId).senderId(senderId).build());
             userChatCounterRepository.findAllByChatChatId(chatId).stream()
                     .filter(item -> item.getUser().getUuid().equals(senderId))
                     .forEach(item -> item.setCounter(0));
@@ -143,7 +144,9 @@ public class ChatServiceImpl implements ChatService {
         } else {
             final var msg = messageService.saveMessage(root.get("body").textValue(), chatId, senderId);
             AtomicReference<List<UserChatCounter>> binders = new AtomicReference<>(userChatCounterRepository.findAllByChatChatId(chatId));
+
             linkedSessions.forEach(linkedSession -> {
+//                chatListSessions.stream().filter(item -> item.getSenderId().equals(linkedSession.getSenderId()))
                 binders.set(binders.get().stream()
                         .filter(item -> !item.getUser().getUuid().equals(linkedSession.getSenderId()))
                         .collect(Collectors.toList()));
@@ -157,13 +160,44 @@ public class ChatServiceImpl implements ChatService {
                 item.setCounter(item.getCounter() + 1);
                 userChatCounterRepository.save(item);
             });
+
+            final var chatDto = chatMapper.chatToChatDto(chatRepository.findById(chatId).orElseThrow(), messageService.getLatestByChatId(chatId), 0);
+
+            binders.get().forEach(binder -> {
+                        final var userId = binder.getUser().getUuid();
+                        final var chatSession = chatListSessions.stream()
+                                .filter(session1 -> session1.getSenderId().equals(userId))
+                                .collect(Collectors.toList())
+                                .get(0);
+                        chatDto.setUnreadMessages(binder.getCounter());
+                        try {
+                            chatSession.getSession().sendMessage(new TextMessage(mapper.writeValueAsString(chatDto)));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
         }
 
-        log.info(sessions.toString());
+        log.info("Chat sessions: " + chatSessions.toString());
+    }
+
+    @Override
+    @SneakyThrows
+    public void handleChatListMessage(WebSocketSession session, String message) {
+        ObjectMapper mapper = new ObjectMapper();
+        final var root = mapper.readTree(message);
+        final var userId = UUID.fromString(root.get("userId").textValue());
+        chatListSessions.add(Session.builder().senderId(userId).session(session).build());
+        log.info("Registered chat list session " + session);
     }
 
     @Override
     public void removeSession(WebSocketSession session) {
-        sessions = sessions.stream().filter(item -> !item.getSession().equals(session)).collect(Collectors.toList());
+        chatSessions = chatSessions.stream().filter(item -> !item.getSession().equals(session)).collect(Collectors.toList());
+    }
+
+    @Override
+    public void removeChatListSession(WebSocketSession session) {
+        chatListSessions = chatListSessions.stream().filter(item -> !item.getSession().equals(session)).collect(Collectors.toList());
     }
 }

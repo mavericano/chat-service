@@ -4,6 +4,7 @@ import io.dice.chatservice.dto.ChatDto;
 import io.dice.chatservice.dto.UserDto;
 import io.dice.chatservice.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @CrossOrigin()
 @RequestMapping("/api/v1/chats")
 @RequiredArgsConstructor
+@Slf4j
 public class RestChatController {
 
     private final ChatService chatService;
@@ -30,6 +32,8 @@ public class RestChatController {
     public ResponseEntity<List<ChatDto>> getAllChatsPaginatedForUser(@PathVariable UUID uuid,
                                                                     @RequestParam int page,
                                                                     @RequestParam int size) {
+        log.info("page: " + page);
+        log.info("size: " + size);
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("x-total-count", String.valueOf(chatService.countAllByUser(uuid)));
         responseHeaders.setAccessControlExposeHeaders(List.of("x-total-count"));

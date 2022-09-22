@@ -14,9 +14,16 @@ import java.util.UUID;
 public interface ChatRepository extends PagingAndSortingRepository<Chat, UUID> {
 
     @Query(nativeQuery = true,
-            value = "SELECT * FROM chat " +
-                    "JOIN user_chat_counter ucc on chat.chat_id = ucc.chat_chat_id " +
+            value = "SELECT chat.*, " +
+                    "  (SELECT MAX(timestamp) " +
+                    "   FROM message " +
+                    "   WHERE message.chat_chat_id = chat.chat_id) as max_timestamp " +
+                    "   FROM chat " +
+                    "JOIN user_chat_counter ucc ON chat.chat_id = ucc.chat_chat_id " +
+                    "LEFT JOIN message ON chat.chat_id = message.chat_chat_id " +
                     "WHERE user_uuid = ?1 " +
+                    "GROUP BY chat_id " +
+                    "ORDER BY max_timestamp DESC " +
                     "LIMIT ?3 " +
                     "OFFSET ?2")
     List<Chat> findAllPaginatedByUserId(String userId, int offset, int size);

@@ -1,6 +1,7 @@
 package io.dice.chatservice.config;
 
 import io.dice.chatservice.controller.WSChatController;
+import io.dice.chatservice.controller.WSChatListController;
 import io.dice.chatservice.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -17,5 +18,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new WSChatController(chatService), "/chat").setAllowedOrigins("*");
+        registry.addHandler(new WSChatListController(chatService), "/chats").setAllowedOrigins("*");
     }
 }

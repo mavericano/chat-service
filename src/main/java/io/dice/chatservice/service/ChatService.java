@@ -25,5 +25,10 @@ public interface ChatService {
     @SneakyThrows
     void handleMessageAndGetLinkedSessions(WebSocketSession session, String message);
 
+    @SneakyThrows
+    void handleChatListMessage(WebSocketSession session, String message);
+
     void removeSession(WebSocketSession session);
+
+    void removeChatListSession(WebSocketSession session);
 }

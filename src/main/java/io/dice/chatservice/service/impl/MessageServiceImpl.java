@@ -43,8 +43,12 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public MessageDto getLatestByChatId(UUID uuid) {
-        final var msg = messageRepository.findLatestByChatId(uuid.toString()).orElseThrow(RuntimeException::new);
-        return messageMapper.messageToMessageDto(msg, userMapper.userToUserDto(msg.getSender()));
+        final var msg = messageRepository.findLatestByChatId(uuid.toString());
+        if (msg.isPresent()) {
+            return messageMapper.messageToMessageDto(msg.get(), userMapper.userToUserDto(msg.get().getSender()));
+        } else {
+            return messageMapper.messageToMessageDto(new Message(), null);
+        }
     }
 
     @Override

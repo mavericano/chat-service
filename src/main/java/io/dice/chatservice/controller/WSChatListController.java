@@ -1,21 +1,17 @@
 package io.dice.chatservice.controller;
 
 import io.dice.chatservice.service.ChatService;
-import io.dice.chatservice.service.MessageService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Slf4j
 @RequiredArgsConstructor
-public class WSChatController extends TextWebSocketHandler {
+public class WSChatListController extends TextWebSocketHandler {
 
     private final ChatService chatService;
 
@@ -25,15 +21,15 @@ public class WSChatController extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        log.info("WSChatController: " + message.getPayload());
-        chatService.handleMessageAndGetLinkedSessions(session, message.getPayload());
+    public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        log.info("WSChatListController: " + message.getPayload());
+        chatService.handleChatListMessage(session, message.getPayload());
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        chatService.removeSession(session);
-        log.info("Closed session " + session);
+        chatService.removeChatListSession(session);
+        log.info("Closed chat list session " + session);
     }
 }
