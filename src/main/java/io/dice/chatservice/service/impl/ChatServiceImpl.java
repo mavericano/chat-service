@@ -165,20 +165,22 @@ public class ChatServiceImpl implements ChatService {
 
             binders.get().forEach(binder -> {
                         final var userId = binder.getUser().getUuid();
-                        final var chatSession = chatListSessions.stream()
+                        final var chatSessionList = chatListSessions.stream()
                                 .filter(session1 -> session1.getSenderId().equals(userId))
-                                .collect(Collectors.toList())
-                                .get(0);
-                        chatDto.setUnreadMessages(binder.getCounter());
-                        try {
-                            chatSession.getSession().sendMessage(new TextMessage(mapper.writeValueAsString(chatDto)));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                                .collect(Collectors.toList());
+                        if (!chatSessionList.isEmpty()) {
+                            chatDto.setUnreadMessages(binder.getCounter());
+                            try {
+                                chatSessionList.get(0).getSession().sendMessage(new TextMessage(mapper.writeValueAsString(chatDto)));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
                     });
         }
 
         log.info("Chat sessions: " + chatSessions.toString());
+        log.info("Chat list sessions: " + chatListSessions.toString());
     }
 
     @Override
